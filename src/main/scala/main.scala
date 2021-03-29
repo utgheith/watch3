@@ -1,4 +1,4 @@
-import java.nio.file.{Path, StandardWatchEventKinds, WatchEvent, WatchKey}
+import java.nio.file.{ClosedWatchServiceException, Path, StandardWatchEventKinds, WatchEvent, WatchKey}
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import scala.collection.mutable
@@ -67,32 +67,36 @@ object main {
       val done = new AtomicBoolean(false)
 
       val child_thread = thread {
-        while (!done.get()) {
-          val e = watch_service.poll(1,TimeUnit.SECONDS)
+        try {
+          while (!done.get()) {
+            val e = watch_service.poll(1, TimeUnit.SECONDS)
 
-          if (e != null) {
-            //println(e.watchable())
-            //println(e.pollEvents())
-            e.pollEvents.asScala.foreach { we =>
-              events(_.append(we))
-              val kind = we.kind()
+            if (e != null) {
+              //println(e.watchable())
+              //println(e.pollEvents())
+              e.pollEvents.asScala.foreach { we =>
+                events(_.append(we))
+                val kind = we.kind()
 
-              if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
-                val dir = os.Path(e.watchable.asInstanceOf[Path])
-                val ctx = os.SubPath(we.context().asInstanceOf[Path])
-                val path = dir / ctx
+                if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
+                  val dir = os.Path(e.watchable.asInstanceOf[Path])
+                  val ctx = os.SubPath(we.context().asInstanceOf[Path])
+                  val path = dir / ctx
 
-                if (ctx != null) {
-                  println(s"delete $path")
-                  changed(_.add(path))
+                  if (ctx != null) {
+                    println(s"delete $path")
+                    changed(_.add(path))
+                  } else {
+                    println(s"???????????? context is null in $we")
+                  }
                 } else {
-                  println(s"???????????? context is null in $we")
+                  println(s"????????????? unexpected kind in $we")
                 }
-              } else {
-                println(s"????????????? unexpected kind in $we")
               }
             }
           }
+        } catch {
+          case _ : ClosedWatchServiceException =>
         }
       }
 
