@@ -27,7 +27,7 @@ object thread {
 
 object main {
 
-  private val names = (0 to 3).map(n => f"$n%04d")
+  private val names = (0 to 100).map(n => f"$n%04d")
   private val n_events = names.size * 2 + 1
 
   def main(args: Array[String]): Unit = {
