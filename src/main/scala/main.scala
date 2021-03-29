@@ -94,6 +94,7 @@ object main {
                 }
               }
             }
+            e.reset()
           }
         } catch {
           case _ : ClosedWatchServiceException =>
