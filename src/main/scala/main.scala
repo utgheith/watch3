@@ -95,6 +95,8 @@ object main {
         case _: ClosedWatchServiceException =>
       }
     }
+    
+    Thread.sleep(1000)
 
     os.remove.all(root_dir)
 
